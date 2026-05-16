@@ -8,6 +8,7 @@ import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -41,12 +42,12 @@ public class RabbitMqConfig {
     }
 
     @Bean
-    Binding orderCreatedBinding(Queue orderCreatedQueue, TopicExchange appExchange) {
+    Binding orderCreatedBinding(@Qualifier("orderCreatedQueue") Queue orderCreatedQueue, TopicExchange appExchange) {
         return BindingBuilder.bind(orderCreatedQueue).to(appExchange).with(EventRoutingKeys.ORDER_CREATED);
     }
 
     @Bean
-    Binding orderCreatedDlqBinding(Queue orderCreatedDlq, TopicExchange deadLetterExchange) {
+    Binding orderCreatedDlqBinding(@Qualifier("orderCreatedDlq") Queue orderCreatedDlq, TopicExchange deadLetterExchange) {
         return BindingBuilder.bind(orderCreatedDlq).to(deadLetterExchange).with(ORDER_CREATED_DLQ);
     }
 

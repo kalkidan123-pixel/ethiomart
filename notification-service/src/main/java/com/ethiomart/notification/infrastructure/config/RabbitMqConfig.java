@@ -1,6 +1,5 @@
 package com.ethiomart.notification.infrastructure.config;
 
-import com.ethiomart.events.EventRoutingKeys;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
@@ -8,8 +7,11 @@ import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.ethiomart.events.EventRoutingKeys;
 
 @Configuration
 public class RabbitMqConfig {
@@ -70,37 +72,37 @@ public class RabbitMqConfig {
     }
 
     @Bean
-    Binding userRegisteredBinding(Queue userRegisteredQueue, TopicExchange appExchange) {
+    Binding userRegisteredBinding(@Qualifier("userRegisteredQueue") Queue userRegisteredQueue, TopicExchange appExchange) {
         return BindingBuilder.bind(userRegisteredQueue).to(appExchange).with(EventRoutingKeys.USER_REGISTERED);
     }
 
     @Bean
-    Binding orderCreatedBinding(Queue orderCreatedQueue, TopicExchange appExchange) {
+    Binding orderCreatedBinding(@Qualifier("orderCreatedQueue") Queue orderCreatedQueue, TopicExchange appExchange) {
         return BindingBuilder.bind(orderCreatedQueue).to(appExchange).with(EventRoutingKeys.ORDER_CREATED);
     }
 
     @Bean
-    Binding paymentCompletedBinding(Queue paymentCompletedQueue, TopicExchange appExchange) {
+    Binding paymentCompletedBinding(@Qualifier("paymentCompletedQueue") Queue paymentCompletedQueue, TopicExchange appExchange) {
         return BindingBuilder.bind(paymentCompletedQueue).to(appExchange).with(EventRoutingKeys.PAYMENT_COMPLETED);
     }
 
     @Bean
-    Binding paymentFailedBinding(Queue paymentFailedQueue, TopicExchange appExchange) {
+    Binding paymentFailedBinding(@Qualifier("paymentFailedQueue") Queue paymentFailedQueue, TopicExchange appExchange) {
         return BindingBuilder.bind(paymentFailedQueue).to(appExchange).with(EventRoutingKeys.PAYMENT_FAILED);
     }
 
     @Bean
-    Binding stockReservedBinding(Queue stockReservedQueue, TopicExchange appExchange) {
+    Binding stockReservedBinding(@Qualifier("stockReservedQueue") Queue stockReservedQueue, TopicExchange appExchange) {
         return BindingBuilder.bind(stockReservedQueue).to(appExchange).with(EventRoutingKeys.STOCK_RESERVED);
     }
 
     @Bean
-    Binding stockFailedBinding(Queue stockFailedQueue, TopicExchange appExchange) {
+    Binding stockFailedBinding(@Qualifier("stockFailedQueue") Queue stockFailedQueue, TopicExchange appExchange) {
         return BindingBuilder.bind(stockFailedQueue).to(appExchange).with(EventRoutingKeys.STOCK_FAILED);
     }
 
     @Bean
-    Binding shipmentCreatedBinding(Queue shipmentCreatedQueue, TopicExchange appExchange) {
+    Binding shipmentCreatedBinding(@Qualifier("shipmentCreatedQueue") Queue shipmentCreatedQueue, TopicExchange appExchange) {
         return BindingBuilder.bind(shipmentCreatedQueue).to(appExchange).with(EventRoutingKeys.SHIPMENT_CREATED);
     }
 

@@ -46,47 +46,40 @@ Six independent Spring Boot services communicating **only via RabbitMQ** (no ser
 
 ## Services
 
-| Service | Port | DB | Role |
-|---------|------|-----|------|
-| auth-service | 8081 | H2 `authdb` | Register, login (JWT), publish `user.registered` |
-| order-service | 8082 | H2 `orderdb` | Create orders (JWT), publish `order.created` |
-| payment-service | 8083 | H2 `paymentdb` | Mock payment on `order.created` |
-| inventory-service | 8084 | H2 `inventorydb` | Stock check/reserve on `order.created` |
-| shipping-service | 8085 | H2 `shippingdb` | Shipment when payment + stock succeed |
+| Service | Port | DB (local / Docker) | Role |
+|---------|------|------------------------|------|
+| auth-service | 8081 | H2 / PostgreSQL `authdb` | Register, login (JWT), publish `user.registered` |
+| order-service | 8082 | H2 / PostgreSQL `orderdb` | Create orders (JWT), publish `order.created` |
+| payment-service | 8083 | H2 / PostgreSQL `paymentdb` | Mock payment on `order.created` |
+| inventory-service | 8084 | H2 / PostgreSQL `inventorydb` | Stock check/reserve on `order.created` |
+| shipping-service | 8085 | H2 / PostgreSQL `shippingdb` | Shipment when payment + stock succeed |
 | notification-service | 8086 | — | Logs all domain events |
 
 ## Quick start
 
-### 1. Start RabbitMQ
+### Option A — Full stack with Docker (recommended)
 
-```bash
-docker compose up rabbitmq -d
-```
-
-Management UI: http://localhost:15672 (guest / guest)
-
-### 2. Build all modules
-
-```bash
-mvn clean install -DskipTests
-```
-
-### 3. Run services (separate terminals)
-
-```bash
-mvn -pl auth-service spring-boot:run
-mvn -pl order-service spring-boot:run
-mvn -pl payment-service spring-boot:run
-mvn -pl inventory-service spring-boot:run
-mvn -pl shipping-service spring-boot:run
-mvn -pl notification-service spring-boot:run
-```
-
-### 4. Full stack with Docker
+Starts **PostgreSQL**, **RabbitMQ**, and all six services:
 
 ```bash
 docker compose up --build
 ```
+
+- Postgres: `localhost:5432` (user/pass: `ethiomart` / `ethiomart`)
+- RabbitMQ UI: http://localhost:15672 (guest / guest)
+
+### Option B — Local dev (H2 + RabbitMQ only)
+
+```bash
+docker compose up rabbitmq -d
+mvn clean install -DskipE2e=true
+# Run each service in its own terminal:
+mvn -pl auth-service spring-boot:run
+mvn -pl order-service spring-boot:run
+# ... payment, inventory, shipping, notification
+```
+
+Use `SPRING_PROFILES_ACTIVE=docker` plus Postgres running if you want PostgreSQL locally without full Compose.
 
 ## API walkthrough
 
@@ -134,11 +127,31 @@ Watch **notification-service** console for `NOTIFICATION =>` lines for every eve
 | Shipping | http://localhost:8085/swagger-ui.html |
 | Notification | http://localhost:8086/swagger-ui.html |
 
+## CI and E2E tests
+
+```bash
+# Full build + Testcontainers E2E (requires Docker)
+mvn verify
+
+# Skip E2E (faster local compile)
+mvn clean install -DskipE2e=true
+```
+
+GitHub Actions runs `mvn verify` on every push (see `.github/workflows/ci.yml`).
+
+E2E tests (`e2e-tests` module) start `docker-compose.e2e.yml` (no fixed host ports) and assert register → login → order → payment → shipment.
+
+> If `docker compose up` is already running, stop it before `mvn verify` to avoid port conflicts on 5432/5672/808x.
+
+Manual script: `scripts/verify-e2e.ps1`
+
 ## Bonus features included
 
 - JWT validation on Order service (shared `JWT_SECRET`)
 - Dead-letter queues on consumer bindings
-- Docker Compose for RabbitMQ + all services
+- PostgreSQL per service in Docker (`application-docker.yml` profile)
+- Docker Compose for full stack
+- Testcontainers E2E + GitHub Actions CI
 - Springdoc OpenAPI per service
 
 ## Products & pricing (Order domain)

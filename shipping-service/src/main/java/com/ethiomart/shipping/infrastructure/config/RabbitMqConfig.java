@@ -1,6 +1,5 @@
 package com.ethiomart.shipping.infrastructure.config;
 
-import com.ethiomart.events.EventRoutingKeys;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
@@ -8,8 +7,11 @@ import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.ethiomart.events.EventRoutingKeys;
 
 @Configuration
 public class RabbitMqConfig {
@@ -44,12 +46,12 @@ public class RabbitMqConfig {
     }
 
     @Bean
-    Binding paymentCompletedBinding(Queue paymentCompletedQueue, TopicExchange appExchange) {
+    Binding paymentCompletedBinding(@Qualifier("paymentCompletedQueue") Queue paymentCompletedQueue, TopicExchange appExchange) {
         return BindingBuilder.bind(paymentCompletedQueue).to(appExchange).with(EventRoutingKeys.PAYMENT_COMPLETED);
     }
 
     @Bean
-    Binding stockReservedBinding(Queue stockReservedQueue, TopicExchange appExchange) {
+    Binding stockReservedBinding(@Qualifier("stockReservedQueue") Queue stockReservedQueue, TopicExchange appExchange) {
         return BindingBuilder.bind(stockReservedQueue).to(appExchange).with(EventRoutingKeys.STOCK_RESERVED);
     }
 
